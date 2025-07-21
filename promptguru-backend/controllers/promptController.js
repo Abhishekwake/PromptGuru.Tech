@@ -1,37 +1,5 @@
-import axios from "axios"; // still fine to keep for future use
-import Prompt from "../models/Prompt.js";
-
-export const analyzePrompt = async (req, res) => {
-  const { prompt } = req.body;
-
-  try {
-    // FAKE FEEDBACK (Used for development / testing without OpenAI)
-    const fakeFeedback = {
-      Clarity: "⭐⭐⭐",
-      Specificity: "⭐⭐",
-      Usefulness: "⭐⭐⭐",
-      Suggestion: "Write a 100-word blog post explaining AI in education.",
-      Tip: "Try being more specific with your topic and tone."
-    };
-
-    // Save prompt + fake feedback in DB
-    const saved = await Prompt.create({
-      user: req.user._id,
-      prompt,
-      feedback: fakeFeedback
-    });
-
-    // Return saved data to frontend
-    res.json(saved);
-
-  } catch (err) {
-    console.log(err.message);
-    res.status(500).json({ error: "Failed to analyze prompt" });
-  }
-};
-
-/* 
-// Original GPT API logic — keep it here for later use when you have API key
+import axios from "axios"; // ✅ unchanged
+import Prompt from "../models/Prompt.js"; // ✅ unchanged
 
 export const analyzePrompt = async (req, res) => {
   const { prompt } = req.body;
@@ -44,12 +12,27 @@ export const analyzePrompt = async (req, res) => {
         messages: [
           {
             role: "system",
-            content:
-              "You are a prompt coach. Give feedback on Clarity, Specificity, Usefulness, and suggest a better version. Respond in JSON format."
+            // 🔧 CHANGED: Stronger, more realistic scoring rules + tone match
+            content: `You are a helpful, casual-friendly prompt feedback coach.
+
+You must return only valid JSON with 4 keys:
+{
+  "Clarity": 1-10, // How clearly the meaning is conveyed
+  "Specificity": 1-10, // How specific the request is
+  "Usefulness": 1-10, // How useful this prompt is in getting what the user wants
+  "suggested_prompt": "One better version of the prompt, keeping the user's original tone (casual, technical, friendly, formal, etc.)"
+}
+
+✅ Don't assume intent that's not in the prompt  
+✅ Don't formalize casual prompts unless clearly needed  
+✅ Focus on what the user *meant*, even if their grammar is imperfect  
+✅ Don't wrap output in backticks, code blocks, or explanation
+
+Your only output must be pure JSON.`
           },
           {
             role: "user",
-            content: `Analyze: "${prompt}"`
+            content: `Here is the prompt to evaluate and improve: "${prompt}"`
           }
         ]
       },
@@ -61,22 +44,34 @@ export const analyzePrompt = async (req, res) => {
       }
     );
 
-    const gptReply = response.data.choices[0].message.content;
+    let gptReply = response.data.choices[0].message.content.trim();
+
+    // 🔧 ADDED: Clean GPT output if it comes with ```json or extra text
+    if (gptReply.startsWith("```")) {
+      gptReply = gptReply.replace(/```json|```/g, "").trim();
+    }
+
+    let feedback;
+    try {
+      feedback = JSON.parse(gptReply);
+    } catch (err) {
+      console.error("❌ Invalid JSON from GPT:", gptReply);
+      return res.status(500).json({ error: "GPT response was not valid JSON." });
+    }
 
     const saved = await Prompt.create({
       user: req.user._id,
       prompt,
-      feedback: JSON.parse(gptReply)
+      feedback
     });
 
     res.json(saved);
 
   } catch (err) {
-    console.log(err.message);
+    console.log("❌ API/DB Error:", err.message);
     res.status(500).json({ error: "Failed to analyze prompt" });
   }
 };
-*/
 
 export const getPromptHistory = async (req, res) => {
   const history = await Prompt.find({ user: req.user._id }).sort({ createdAt: -1 });
