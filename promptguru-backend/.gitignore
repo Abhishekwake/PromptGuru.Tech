@@ -1,0 +1,6 @@
+node_modules/
+.env
+.DS_Store
+
+#  Don’t ever upload .env file with your secrets (JWT, Mongo URI, etc.)
+
