@@ -19,10 +19,10 @@ PromptGuru is an AI-powered SaaS platform that helps you **analyze, improve, and
 
 ## 📦 Tech Stack
 
-- **Frontend**: React.js + Tailwind CSS *(coming soon)*
+- **Frontend**: React.js + Tailwind CSS + Framer Motion + Shadcn/ui
 - **Backend**: Node.js, Express.js
 - **Database**: MongoDB
 - **Auth**: JWT Token-based Authentication
-- **AI**: Fake feedback now, GPT-4 API *(coming soon)*
+- **AI**: Open Ai API, GPT-3.5 Turbo
 
 ---
