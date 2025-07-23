@@ -2,11 +2,12 @@
   "name": "promptguru-backend",
   "version": "1.0.0",
   "description": "PromptGuru is an Al-powered platform that teaches users how to write better prompts for tools like GPT, with real-time analysis and improvement suggestions— stands out as timely, ambitious, and genuinely useful. ",
-  "main": "index.js",
+  "main": "app.js",
   "type": "module",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+"scripts": {
+  "start": "node app.js"
+},
+
   "author": "Abhishek Wake",
   "license": "ISC",
   "dependencies": {
