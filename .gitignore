@@ -1,12 +1,12 @@
-# Ignore node_modules and build files in both frontend & backend
-**/node_modules
-**/.next
-**/dist
+# Ignore node_modules and build folders in both frontend & backend
+node_modules/
+.next/
+dist/
 
-# Ignore environment files
-**/.env
-**/.env.local
+# Ignore environment files (frontend & backend)
+.env
+.env.local
 
-# OS/system junk
+# Mac & Windows system files
 .DS_Store
 Thumbs.db

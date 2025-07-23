@@ -1,103 +1,98 @@
-import Image from "next/image";
+'use client'
+
+import { Button } from "@/components/button"
+import Link from "next/link"
+import { motion } from "framer-motion"
+import Navbar from "@/components/Navbar"
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="min-h-screen bg-black text-white px-4 py-10 relative overflow-hidden">
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* ✅ Reusable Navbar Component */}
+      <Navbar />
+
+      {/* 🔮 Moving Glowing Background */}
+      <motion.div
+        className="absolute z-0 w-[600px] h-[600px] bg-purple-700/30 blur-[180px] rounded-full"
+        animate={{
+          x: [0, 30, -30, 0],
+          y: [0, -20, 20, 0],
+          scale: [1, 1.05, 1, 0.98, 1],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        style={{
+          top: '50%',
+          left: '50%',
+          position: 'absolute',
+          translateX: '-50%',
+          translateY: '-50%'
+        }}
+      />
+
+      {/* 🎯 Hero Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.6 }}
+        className="backdrop-blur-md bg-white/5 border border-white/10 shadow-lg rounded-2xl w-full max-w-3xl px-6 py-10 text-center z-10 mt-40 mx-auto"
+      >
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          PromptGuru — Write Better Prompts with AI
+        </h1>
+        <p className="text-lg text-gray-300 mb-6">
+          Learn to write better prompts through instant analysis, suggestions, and score.
+        </p>
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
+          <Link href="/register">
+            <Button className="bg-purple-600 hover:bg-purple-700 text-white shadow-md">
+              🚀 Try for Free
+            </Button>
+          </Link>
+          <Link href="#features">
+            <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+              📂 Explore Features
+            </Button>
+          </Link>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+      </motion.div>
+
+      {/* 📦 Feature Cards */}
+      <motion.section
+        id="features"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="mt-24 grid md:grid-cols-3 gap-6 max-w-6xl w-full px-4 z-10 mx-auto"
+      >
+        {[
+          { title: "✍️ Prompt Analyzer", desc: "Instant AI feedback to improve your prompt quality." },
+          { title: "📈 Learning-Based Scoring", desc: "Know your prompt strength and how to improve." },
+          { title: "🔐 Private History", desc: "Access your saved prompts anytime securely." }
+        ].map((f, i) => (
+          <div
+            key={i}
+            className="backdrop-blur-md bg-white/5 border border-white/10 p-6 rounded-xl shadow-sm text-center"
+          >
+            <h3 className="text-lg font-semibold mb-2">{f.title}</h3>
+            <p className="text-sm text-gray-400">{f.desc}</p>
+          </div>
+        ))}
+      </motion.section>
+
+      {/* 🔚 Footer */}
+      <footer className="mt-24 text-gray-600 text-sm text-center z-10">
+        © 2025 PromptGuru.Tech — Built with ❤️ by Abhishek
       </footer>
-    </div>
-  );
+
+      {/* 🌌 Starry Background */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="w-full h-full bg-[radial-gradient(#ffffff0f_1px,transparent_1px)] [background-size:20px_20px]" />
+      </div>
+    </main>
+  )
 }

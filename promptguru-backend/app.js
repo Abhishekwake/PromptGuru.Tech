@@ -8,7 +8,10 @@ import promptRoutes from "./routes/promptRoutes.js";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3000",  // your frontend port
+  credentials: true
+}))
 app.use(express.json());
 
 const startServer = async () => {
@@ -19,7 +22,7 @@ const startServer = async () => {
     console.log("✅ MongoDB connected");
 
     app.use("/api/auth", authRoutes);
-    app.use("/api/prompts", promptRoutes);
+    app.use("/api/prompt", promptRoutes);
 
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
