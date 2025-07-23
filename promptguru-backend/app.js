@@ -8,11 +8,19 @@ import promptRoutes from "./routes/promptRoutes.js";
 dotenv.config();
 
 const app = express();
+
+// ✅ Allow both local + deployed frontend
 app.use(cors({
-  origin: "http://localhost:3000",  // your frontend port
-  credentials: true
-}))
+  origin: ["http://localhost:3000", "https://prompt-guru-tech.vercel.app"],
+  credentials: true,
+}));
+
 app.use(express.json());
+
+// ✅ Health Check route for Render
+app.get('/healthz', (req, res) => {
+  res.status(200).send('OK');
+});
 
 const startServer = async () => {
   try {
@@ -21,9 +29,11 @@ const startServer = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ MongoDB connected");
 
+    // ✅ Routes
     app.use("/api/auth", authRoutes);
     app.use("/api/prompt", promptRoutes);
 
+    // ✅ Use Render-assigned port
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
@@ -31,9 +41,8 @@ const startServer = async () => {
 
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err.message);
-    process.exit(1); // stop the app
+    process.exit(1);
   }
 };
 
-// ❗ VERY IMPORTANT: Don’t forget to call the function
 startServer();
