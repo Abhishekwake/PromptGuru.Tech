@@ -11,10 +11,12 @@ type PromptItem = {
   _id: string
   prompt: string
   feedback: {
-    Clarity?: number
-    Specificity?: number
-    Usefulness?: number
-    suggested_prompt?: string
+    Clarity: number
+    Specificity: number
+    Usefulness: number
+    score: number
+    suggested_prompts: string[]
+    tips: string[]
   }
 }
 
@@ -36,28 +38,29 @@ export default function Dashboard() {
     }
   }, [router])
 
- const fetchHistory = async (authToken: string) => {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/prompt/history`, {
-      method: 'POST', // ✅ Use POST, because your backend expects POST
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`,
-      },
-    });
+  const fetchHistory = async (authToken: string) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/prompt/history`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+      })
 
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error('Backend returned non-200:', errText);
-      return;
+      if (!res.ok) {
+        const errText = await res.text()
+        console.error('Backend returned non-200:', errText)
+        return
+      }
+
+      const data = await res.json()
+      setHistory(data)
+    } catch (err) {
+      console.error('Error fetching history:', err)
     }
-
-    const data = await res.json();
-    setHistory(data);
-  } catch (err) {
-    console.error('Error fetching history:', err);
   }
-};
+
   const handleAnalyze = async () => {
     if (!prompt.trim()) return
     setLoading(true)
@@ -91,11 +94,7 @@ export default function Dashboard() {
 
       {/* ✨ Background blur ball */}
       <motion.div className="absolute z-0 w-[600px] h-[600px] bg-purple-700/30 blur-[180px] rounded-full"
-        animate={{
-          x: [0, 30, -30, 0],
-          y: [0, -20, 20, 0],
-          scale: [1, 1.05, 1, 0.98, 1],
-        }}
+        animate={{ x: [0, 30, -30, 0], y: [0, -20, 20, 0], scale: [1, 1.05, 1, 0.98, 1] }}
         transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
         style={{ top: '50%', left: '50%', translateX: '-50%', translateY: '-50%' }}
       />
@@ -146,21 +145,44 @@ export default function Dashboard() {
             </Button>
           </div>
 
-          {/* Response */}
+          {/* 🎯 Response */}
           {response && (
             <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="mt-8 w-full max-w-2xl bg-white/5 p-6 rounded-xl border border-white/10 backdrop-blur-md shadow-md"
+              className="mt-8 w-full max-w-2xl bg-white/5 p-6 rounded-xl border border-white/10 backdrop-blur-md shadow-md space-y-4"
             >
-              <h3 className="text-lg font-semibold mb-2 text-purple-400">AI Feedback</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-purple-400">AI Feedback</h3>
+                <span className="bg-purple-700 text-white text-xs px-3 py-1 rounded-full">
+                  Score: {response.feedback.score}/10
+                </span>
+              </div>
+
               <ul className="text-sm text-gray-300 space-y-1">
                 <li><strong>Clarity:</strong> {response.feedback.Clarity}</li>
                 <li><strong>Specificity:</strong> {response.feedback.Specificity}</li>
                 <li><strong>Usefulness:</strong> {response.feedback.Usefulness}</li>
-                <li><strong>Suggested Prompt:</strong> {response.feedback.suggested_prompt}</li>
               </ul>
+
+              <div>
+                <h4 className="text-sm font-semibold text-white mb-1">✨ Suggested Prompts:</h4>
+                <ul className="list-disc ml-5 space-y-1 text-gray-300 text-sm">
+                  {response.feedback.suggested_prompts.map((sp, i) => (
+                    <li key={i}>{sp}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-white mb-1">💡 Improvement Tips:</h4>
+                <ul className="list-disc ml-5 space-y-1 text-gray-300 text-sm">
+                  {response.feedback.tips.map((tip, i) => (
+                    <li key={i}>{tip}</li>
+                  ))}
+                </ul>
+              </div>
             </motion.div>
           )}
         </div>

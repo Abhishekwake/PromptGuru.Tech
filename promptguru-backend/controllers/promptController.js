@@ -1,5 +1,5 @@
-import axios from "axios"; // ✅ unchanged
-import Prompt from "../models/Prompt.js"; // ✅ unchanged
+import axios from "axios";
+import Prompt from "../models/Prompt.js";
 
 export const analyzePrompt = async (req, res) => {
   const { prompt } = req.body;
@@ -12,8 +12,7 @@ export const analyzePrompt = async (req, res) => {
         messages: [
           {
             role: "system",
-            // 🔧 CHANGED: Stronger, more realistic scoring rules + tone match
-   content: `You are a world-class Prompt Engineering Coach who helps users write powerful prompts for LLMs like GPT-4.
+            content: `You are a world-class Prompt Engineering Coach who helps users write powerful prompts for LLMs like GPT-4.
 
 Your task is:
 - Understand the user's goal or intent.
@@ -22,25 +21,25 @@ Your task is:
   - Specificity (1–10)
   - Usefulness (1–10)
 
-Then suggest a better version using prompt engineering techniques, including:
+Then suggest 3 better versions using prompt engineering techniques:
 - Giving the AI a role or persona
 - Using context, examples, or constraints
 - Structuring multi-part prompts
+
+Also give 2 tips on how the user can improve their prompt.
 
 Only respond in valid JSON:
 {
   "Clarity": number,
   "Specificity": number,
   "Usefulness": number,
-  "suggested_prompt": "..."
+  "suggested_prompts": ["...", "...", "..."],
+  "tips": ["...", "..."]
 }
 
 ⚠️ Do not explain anything.
 ⚠️ Do not wrap in code blocks.
-⚠️ Your only output should be the pure JSON result.
-
-
-Your only output must be pure JSON.`
+⚠️ Your only output should be the pure JSON result.`
           },
           {
             role: "user",
@@ -58,7 +57,6 @@ Your only output must be pure JSON.`
 
     let gptReply = response.data.choices[0].message.content.trim();
 
-    // 🔧 ADDED: Clean GPT output if it comes with ```json or extra text
     if (gptReply.startsWith("```")) {
       gptReply = gptReply.replace(/```json|```/g, "").trim();
     }
@@ -71,14 +69,25 @@ Your only output must be pure JSON.`
       return res.status(500).json({ error: "GPT response was not valid JSON." });
     }
 
+    // ✅ Add score
+    const score = ((feedback.Clarity + feedback.Specificity + feedback.Usefulness) / 3).toFixed(1);
+
+    const fullFeedback = {
+      Clarity: feedback.Clarity,
+      Specificity: feedback.Specificity,
+      Usefulness: feedback.Usefulness,
+      score: parseFloat(score),
+      suggested_prompts: feedback.suggested_prompts,
+      tips: feedback.tips,
+    };
+
     const saved = await Prompt.create({
       user: req.user._id,
       prompt,
-      feedback
+      feedback: fullFeedback,
     });
 
     res.json(saved);
-
   } catch (err) {
     console.log("❌ API/DB Error:", err.message);
     res.status(500).json({ error: "Failed to analyze prompt" });
