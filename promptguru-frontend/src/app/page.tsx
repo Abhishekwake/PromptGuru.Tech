@@ -1,8 +1,7 @@
-'use client'
+'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-
 
 // Button component with TypeScript types
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -29,21 +28,44 @@ const Button = ({ children, className = '', variant = 'default', ...props }: But
 interface LinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   href: string;
   children: React.ReactNode;
+  onClick?: () => void; // Added onClick for mobile menu closing
 }
 
-const Link = ({ href, children, ...props }: LinkProps) => {
+const Link = ({ href, children, onClick, ...props }: LinkProps) => {
   return (
-    <a href={href} className="no-underline" {...props}>
+    <a href={href} className="no-underline" onClick={onClick} {...props}>
       {children}
     </a>
   );
 };
-// Mock Navbar component
+
+// Navbar component
 const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false); // State to manage mobile menu visibility
+
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
     <nav className="absolute top-0 left-0 right-0 z-20 px-4 py-6 flex justify-between items-center max-w-6xl mx-auto">
       <div className="text-2xl font-bold text-white">PromptGuru</div>
-      <div className="space-x-4">
+
+      {/* Hamburger Menu Icon for Mobile */}
+      <div className="md:hidden">
+        <button onClick={toggleMenu} className="text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 rounded">
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            {isOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            )}
+          </svg>
+        </button>
+      </div>
+
+      {/* Desktop Navigation Links */}
+      <div className="hidden md:flex space-x-4">
         <Link href="#features">
           <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
             Features
@@ -55,6 +77,28 @@ const Navbar = () => {
           </Button>
         </Link>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.2 }}
+          className="md:hidden absolute top-full left-0 right-0 bg-black/90 backdrop-blur-md border-b border-white/20 py-4 flex flex-col items-center space-y-4"
+        >
+          <Link href="#features" onClick={toggleMenu}>
+            <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10">
+              Features
+            </Button>
+          </Link>
+          <Link href="/login" onClick={toggleMenu}>
+            <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+              Sign In
+            </Button>
+          </Link>
+        </motion.div>
+      )}
     </nav>
   );
 };
@@ -395,7 +439,7 @@ export default function Home() {
               className="backdrop-blur-lg bg-gradient-to-br from-white/5 to-white/2 border border-white/20 p-6 rounded-xl relative overflow-hidden"
               style={{
                 // Original: rgba(168, 85, 247, 0.2) -> 0.2 + (0.2 * 0.3) = 0.26
-                boxShadow: '0 0 25px -5px rgba(168, 85, 247, 0.26)' // Adjusted shadow
+                boxShadow: '0 0 25px -5px rgba(168, 85, 247, 0.26)'
               }}
             >
               <div className="absolute inset-0 rounded-xl pointer-events-none overflow-hidden">
@@ -447,10 +491,10 @@ export default function Home() {
         </motion.h2>
 
         <div className="backdrop-blur-lg bg-gradient-to-br from-white/5 to-white/2 border border-white/20 rounded-xl overflow-hidden"
-             style={{
-               // Original: rgba(168, 85, 247, 0.2) -> 0.2 + (0.2 * 0.3) = 0.26
-               boxShadow: '0 0 25px -5px rgba(168, 85, 247, 0.26)'
-             }}>
+          style={{
+            // Original: rgba(168, 85, 247, 0.2) -> 0.2 + (0.2 * 0.3) = 0.26
+            boxShadow: '0 0 25px -5px rgba(168, 85, 247, 0.26)'
+          }}>
           <div className="grid grid-cols-4">
             {/* Backgrounds remain neutral dark gray, text light */}
             <div className="col-span-1 p-4 bg-gray-900 font-medium text-gray-200">Metric</div>
