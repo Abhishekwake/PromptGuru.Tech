@@ -11,6 +11,8 @@ export default function Login() {
   const [password, setPassword] = useState('')
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    console.log("👉 Backend URL is:", process.env.NEXT_PUBLIC_API_URL);
+
     e.preventDefault()
 
     try {
