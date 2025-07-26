@@ -259,7 +259,9 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 * i }}
-            viewport={{ once: true }}
+            viewport={{
+              
+              once: true }}
             className="backdrop-blur-lg bg-gradient-to-br from-white/5 to-white/2 border border-white/20 rounded-xl p-6 text-center relative overflow-hidden"
             style={{
               // Original: rgba(168, 85, 247, 0.2) -> 0.2 + (0.2 * 0.3) = 0.26

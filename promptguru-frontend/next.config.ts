@@ -1,13 +1,19 @@
-import type { NextConfig } from "next";
+import withPWA from 'next-pwa'
+import type { NextConfig } from 'next'
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
+const baseConfig: NextConfig = {
+  reactStrictMode: true,
 
-export default nextConfig;
-// next.config.js
-module.exports = {
   eslint: {
-    ignoreDuringBuilds: true,
-  },
+    ignoreDuringBuilds: true
+  }
+
+  // ✅ Remove serverActions or other experimental keys that are not strictly typed
 }
+
+export default withPWA({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development'
+})(baseConfig)
