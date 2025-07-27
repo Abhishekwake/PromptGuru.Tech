@@ -98,3 +98,46 @@ export const getPromptHistory = async (req, res) => {
   const history = await Prompt.find({ user: req.user._id }).sort({ createdAt: -1 });
   res.json(history);
 };
+// Delete a prompt by ID
+export const deletePrompt = async (req, res) => {
+  const { id } = req.body;
+  try {
+    const prompt = await Prompt.findOneAndDelete({ _id: id, user: req.user._id });
+    if (!prompt) return res.status(404).json({ error: "Prompt not found" });
+    res.json({ message: "Prompt deleted" });
+  } catch (err) {
+    console.error("❌ Delete error:", err.message);
+    res.status(500).json({ error: "Server error while deleting prompt" });
+  }
+};
+export const getPromptById = async (req, res) => {
+  try {
+    const prompt = await Prompt.findById(req.params.id);
+    if (!prompt) return res.status(404).json({ message: 'Prompt not found' });
+    res.json(prompt);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+export const savePromptToLibrary = async (req, res) => {
+  const { id } = req.body;
+  const prompt = await Prompt.findById(id);
+  if (!prompt) return res.status(404).json({ message: 'Prompt not found' });
+
+  prompt.saved = true;
+  await prompt.save();
+  res.json({ message: "Prompt saved." });
+};
+export const improvePrompt = async (req, res) => {
+  const { prompt, tips } = req.body;
+
+  const improvedPrompt = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo",
+    messages: [{
+      role: "user",
+      content: `Rewrite the following prompt to improve it based on these tips:\nPrompt: "${prompt}"\nTips: ${tips.join(", ")}`
+    }]
+  });
+
+  res.json({ improved: improvedPrompt.choices[0].message.content });
+}
