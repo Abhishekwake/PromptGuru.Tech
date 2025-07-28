@@ -660,7 +660,7 @@ export default function Home() {
 
       {/* 🔚 Footer */}
       <footer className="mt-24 text-gray-600 text-sm text-center z-10">
-        © 2025 PromptGuru.Tech — Built with ❤️ by Abhishek
+        © 2025 PromptGuru.Tech — Built with ❤️
       </footer>
 
       {/* 🌌 Starry Background */}

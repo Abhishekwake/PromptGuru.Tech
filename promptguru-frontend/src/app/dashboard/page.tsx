@@ -95,6 +95,7 @@ export default function Dashboard() {
   const [history, setHistory] = useState<PromptItem[]>([])
   const [loading, setLoading] = useState(false)
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')  
   const inputRef = useRef<HTMLInputElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -128,30 +129,43 @@ export default function Dashboard() {
       console.error('History fetch error:', err)
     }
   }
+const handleAnalyze = async () => {
+  if (!prompt.trim()) return;
+  setLoading(true);
+  setLastPrompt(prompt);
+  setErrorMessage(''); // Clear previous error
 
-  const handleAnalyze = async () => {
-    if (!prompt.trim()) return
-    setLoading(true)
-    setLastPrompt(prompt)
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/prompt/analyze`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ prompt })
-      })
-      const data = await res.json()
-      setResponse(data)
-      setPrompt('')
-      fetchHistory(token)
-    } catch (err) {
-      alert('Error analyzing prompt')
-    } finally {
-      setLoading(false)
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/prompt/analyze`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (res.status === 429) {
+        setErrorMessage("🚫 You've reached the daily limit of 10 prompts. Try again tomorrow.");
+      } else {
+        setErrorMessage(data?.error || "⚠️ Something went wrong. Please try again.");
+      }
+      return;
     }
+
+    setResponse(data);
+    setPrompt('');
+    fetchHistory(token);
+  } catch (err) {
+    setErrorMessage("❌ Network error or unexpected issue occurred.");
+  } finally {
+    setLoading(false);
   }
+};
+
 
   const handleDeletePrompt = async (id: string) => {
     try {
@@ -214,26 +228,39 @@ export default function Dashboard() {
           <motion.h1 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-2xl md:text-4xl font-bold text-center">Write Better Prompts with AI</motion.h1>
           <p className="text-gray-400 mt-2 mb-8 text-center text-sm px-4">Analyze, Improve & Master Prompt Engineering</p>
           <div className="w-full max-w-xl flex flex-col sm:flex-row gap-2 px-4">
-            <input
-              ref={inputRef}
-              type="text"
-              className="flex-1 bg-white/10 border border-white/20 rounded px-4 py-3 text-white placeholder:text-gray-400 outline-none backdrop-blur-sm"
-              placeholder="Enter a prompt"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  handleAnalyze()
-                }
-              }}
-            />
+<div className="relative w-full max-w-xl">
+  <input
+    ref={inputRef}
+    type="text"
+    className="w-full bg-white/10 border border-white/20 rounded px-4 py-3 text-white placeholder:text-gray-400 outline-none backdrop-blur-sm"
+    placeholder="Enter a prompt (max 100 characters)"
+    value={prompt}
+    maxLength={100}
+    onChange={(e) => setPrompt(e.target.value)}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        handleAnalyze()
+      }
+    }}
+  />
+  <span className={`absolute bottom-1 right-2 text-xs ${prompt.length > 90 ? 'text-red-400 font-semibold' : 'text-gray-400'}`}>
+    {prompt.length}/100
+  </span>
+</div>
+
+
+
             <Button
               onClick={handleAnalyze}
               className="bg-purple-600 hover:bg-purple-700 text-white px-6 w-full sm:w-auto mt-2 sm:mt-0"
             >
               {loading ? 'Analyzing...' : 'Analyze'}
             </Button>
+            {errorMessage && (
+  <p className="text-red-500 text-xs mt-2 px-2 text-center">{errorMessage}</p>
+)}
+
           </div>
           {lastPrompt && <div className="mt-6 text-sm text-gray-300 max-w-xl px-4 text-left"><strong>You asked:</strong> {lastPrompt}</div>}
           {response && (
@@ -306,6 +333,7 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      
       <MobileHistoryDialog
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
@@ -314,6 +342,7 @@ export default function Dashboard() {
         onDeletePrompt={handleDeletePrompt}
         onViewFullPrompt={handleViewPrompt}
       />
+      
     </main>
   )
 }

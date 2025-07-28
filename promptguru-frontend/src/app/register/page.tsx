@@ -1,18 +1,21 @@
-'use client'
+'use client';
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import Spinner from '@/components/Spinner'
 
 export default function Register() {
   const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setIsLoading(true)
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
@@ -31,17 +34,24 @@ export default function Register() {
     } catch (err) {
       alert('Error connecting to backend')
       console.error(err)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-black text-white px-4 relative overflow-hidden">
+      {/* 🌌 Background Glow */}
       <motion.div
         className="absolute z-0 w-[600px] h-[600px] bg-purple-700/30 blur-[180px] rounded-full"
         animate={{ x: [0, 30, -30, 0], y: [0, -20, 20, 0], scale: [1, 1.05, 1, 0.98, 1] }}
         transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
-        style={{ top: '50%', left: '50%', position: 'absolute', translateX: '-50%', translateY: '-50%' }}
+        style={{ top: '50%', left: '50%', translateX: '-50%', translateY: '-50%' }}
       />
+      {/* ✨ Black Dot Effect */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="w-full h-full bg-[radial-gradient(#ffffff0f_1px,transparent_1px)] [background-size:20px_20px]" />
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 40 }}
@@ -75,8 +85,12 @@ export default function Register() {
             onChange={(e) => setPassword(e.target.value)}
             className="w-full p-2 rounded-md bg-black border border-white/20 text-white focus:outline-none"
           />
-          <button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 p-2 rounded-md">
-            Register
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-purple-600 hover:bg-purple-700 p-2 rounded-md flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {isLoading ? <Spinner /> : 'Register'}
           </button>
         </form>
         <p className="mt-4 text-center text-gray-400">

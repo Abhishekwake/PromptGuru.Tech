@@ -1,10 +1,26 @@
 import axios from "axios";
 import Prompt from "../models/Prompt.js";
 
-export const analyzePrompt = async (req, res) => {
+// ✅ Analyze prompt and return structured feedback
+const analyzePrompt = async (req, res) => {
   const { prompt } = req.body;
 
   try {
+    if (!prompt || prompt.length > 130) {
+      return res.status(400).json({ error: "Prompt must be 130 characters or fewer." });
+    }
+
+    const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const count = await Prompt.countDocuments({
+      user: req.user._id,
+      createdAt: { $gte: last24Hours },
+    });
+
+    if (count >= 10) {
+      return res.status(429).json({ error: "Daily limit reached. Only 10 prompts allowed per day." });
+    }
+    //✅  Temporarily disable the limit in dev
+
     const response = await axios.post(
       "https://api.openai.com/v1/chat/completions",
       {
@@ -69,7 +85,6 @@ Only respond in valid JSON:
       return res.status(500).json({ error: "GPT response was not valid JSON." });
     }
 
-    // ✅ Add score
     const score = ((feedback.Clarity + feedback.Specificity + feedback.Usefulness) / 3).toFixed(1);
 
     const fullFeedback = {
@@ -94,50 +109,67 @@ Only respond in valid JSON:
   }
 };
 
-export const getPromptHistory = async (req, res) => {
-  const history = await Prompt.find({ user: req.user._id }).sort({ createdAt: -1 });
-  res.json(history);
-};
-// Delete a prompt by ID
-export const deletePrompt = async (req, res) => {
-  const { id } = req.body;
+// ✅ Delete a prompt
+const deletePrompt = async (req, res) => {
   try {
-    const prompt = await Prompt.findOneAndDelete({ _id: id, user: req.user._id });
-    if (!prompt) return res.status(404).json({ error: "Prompt not found" });
-    res.json({ message: "Prompt deleted" });
+    const { id } = req.body;
+    const deleted = await Prompt.findOneAndDelete({
+      _id: id,
+      user: req.user._id,
+    });
+
+    if (!deleted) {
+      return res.status(404).json({ error: "Prompt not found" });
+    }
+
+    res.status(200).json({ message: "Prompt deleted successfully" });
   } catch (err) {
-    console.error("❌ Delete error:", err.message);
-    res.status(500).json({ error: "Server error while deleting prompt" });
+    console.error("❌ Delete Error:", err.message);
+    res.status(500).json({ error: "Failed to delete prompt" });
   }
 };
-export const getPromptById = async (req, res) => {
+
+// ✅ Get history of prompts
+const getPromptHistory = async (req, res) => {
   try {
-    const prompt = await Prompt.findById(req.params.id);
-    if (!prompt) return res.status(404).json({ message: 'Prompt not found' });
+    const history = await Prompt.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(50);
+    res.json(history);
+  } catch (err) {
+    console.error("❌ History Fetch Error:", err.message);
+    res.status(500).json({ error: "Failed to fetch history" });
+  }
+};
+
+// ✅ Get a single prompt by ID
+const getPromptById = async (req, res) => {
+  try {
+    const prompt = await Prompt.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!prompt) {
+      return res.status(404).json({ error: "Prompt not found" });
+    }
+
     res.json(prompt);
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error("❌ Get Prompt Error:", err.message);
+    res.status(500).json({ error: "Failed to fetch prompt" });
   }
 };
-export const savePromptToLibrary = async (req, res) => {
-  const { id } = req.body;
-  const prompt = await Prompt.findById(id);
-  if (!prompt) return res.status(404).json({ message: 'Prompt not found' });
 
-  prompt.saved = true;
-  await prompt.save();
-  res.json({ message: "Prompt saved." });
+// ✅ Future placeholder
+const improvePrompt = (req, res) => res.send("improvePrompt - not implemented yet");
+const savePromptToLibrary = (req, res) => res.send("savePromptToLibrary - not implemented yet");
+
+// ✅ Export all at once (no duplicates!)
+export {
+  analyzePrompt,
+  deletePrompt,
+  getPromptHistory,
+  getPromptById,
+  improvePrompt,
+  savePromptToLibrary
 };
-export const improvePrompt = async (req, res) => {
-  const { prompt, tips } = req.body;
-
-  const improvedPrompt = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo",
-    messages: [{
-      role: "user",
-      content: `Rewrite the following prompt to improve it based on these tips:\nPrompt: "${prompt}"\nTips: ${tips.join(", ")}`
-    }]
-  });
-
-  res.json({ improved: improvedPrompt.choices[0].message.content });
-}
+  

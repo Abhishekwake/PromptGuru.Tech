@@ -1,19 +1,21 @@
-'use client'
+'use client';
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import Spinner from '@/components/Spinner'
 
 export default function Login() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    console.log("👉 Backend URL is:", process.env.NEXT_PUBLIC_API_URL);
-
     e.preventDefault()
+    setIsLoading(true)
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
@@ -33,17 +35,24 @@ export default function Login() {
     } catch (err) {
       alert('Error connecting to backend')
       console.error(err)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-black text-white px-4 relative overflow-hidden">
+      {/* 🌌 Background Glow */}
       <motion.div
         className="absolute z-0 w-[600px] h-[600px] bg-purple-700/30 blur-[180px] rounded-full"
         animate={{ x: [0, 30, -30, 0], y: [0, -20, 20, 0], scale: [1, 1.05, 1, 0.98, 1] }}
         transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
-        style={{ top: '50%', left: '50%', position: 'absolute', translateX: '-50%', translateY: '-50%' }}
+        style={{ top: '50%', left: '50%', translateX: '-50%', translateY: '-50%' }}
       />
+      {/* ✨ Black Dot Effect */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="w-full h-full bg-[radial-gradient(#ffffff0f_1px,transparent_1px)] [background-size:20px_20px]" />
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 40 }}
@@ -61,16 +70,31 @@ export default function Login() {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full p-2 rounded-md bg-black border border-white/20 text-white focus:outline-none"
           />
-          <input
-            type="password"
-            placeholder="Password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 rounded-md bg-black border border-white/20 text-white focus:outline-none"
-          />
-          <button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 p-2 rounded-md">
-            Login
+
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-2 rounded-md bg-black border border-white/20 text-white focus:outline-none pr-20"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 hover:text-gray-200 transition"
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-purple-600 hover:bg-purple-700 p-2 rounded-md flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {isLoading ? <Spinner /> : 'Login'}
           </button>
         </form>
         <p className="mt-4 text-center text-gray-400">
