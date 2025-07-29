@@ -1,0 +1,16 @@
+# Ignore node_modules and build folders in both frontend & backend
+node_modules/
+.next/
+dist/
+
+# Ignore environment files (frontend & backend)
+prompguru-firebase-adminsdk-fbsvc-749f5b5eb0.json
+.env
+.env.local
+
+# Mac & Windows system files
+.DS_Store
+Thumbs.db
+
+
+
