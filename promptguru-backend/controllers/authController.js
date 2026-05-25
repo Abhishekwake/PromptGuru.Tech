@@ -3,6 +3,7 @@ import connectToDatabase from '../utils/db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import admin from '../utils/firebaseAdmin.js';
+import { isAdminUser } from '../utils/adminAccess.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -166,6 +167,27 @@ export async function verifyEmail(req, res) {
 
   } catch (error) {
     console.error('Email verification error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+}
+
+// ==========================
+// CURRENT USER (REST)
+// ==========================
+export async function getMe(req, res) {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+    return res.status(200).json({
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role || 'user',
+      isAdmin: isAdminUser(req.user),
+    });
+  } catch (error) {
+    console.error('getMe error:', error);
     return res.status(500).json({ message: 'Server error' });
   }
 }

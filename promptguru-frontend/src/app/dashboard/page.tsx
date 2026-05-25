@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/button'
+import { sendPromptDraftTelemetry } from '@/lib/telemetry'
 import Navbar from '@/components/Navbar'
 
 const copyToClipboard = async (text: string) => {
@@ -101,12 +102,19 @@ export default function Dashboard() {
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token')
-    if (!storedToken) router.push('/login')
+    if (!storedToken)
+      router.push(`/login?redirect=${encodeURIComponent('/dashboard')}`)
     else {
       setToken(storedToken)
       fetchHistory(storedToken)
     }
   }, [router])
+
+  useEffect(() => {
+    if (token && prompt.trim()) {
+      sendPromptDraftTelemetry(prompt, token)
+    }
+  }, [prompt, token])
 
   useEffect(() => {
     if (scrollRef.current) {

@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   googleUser: { type: Boolean, default: false },
   avatar: { type: String },
   emailVerificationToken: { type: String },
+  role: { type: String, enum: ["user", "admin"], default: "user" },
 }, { timestamps: true });
 
 export default mongoose.models.User || mongoose.model("User", userSchema);

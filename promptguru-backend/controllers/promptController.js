@@ -1,5 +1,6 @@
 import axios from "axios";
 import Prompt from "../models/Prompt.js";
+import { broadcastAdminEvent } from "../utils/adminEvents.js";
 
 // ✅ Analyze prompt and return structured feedback
 const analyzePrompt = async (req, res) => {
@@ -109,6 +110,19 @@ Only respond in valid, raw JSON format. The JSON object must follow this exact s
       user: req.user._id,
       prompt,
       feedback: fullFeedback,
+    });
+
+    broadcastAdminEvent({
+      type: "analyzed",
+      source: "dashboard",
+      user: {
+        id: String(req.user._id),
+        name: req.user.name,
+        email: req.user.email,
+      },
+      text: prompt,
+      score: fullFeedback.score,
+      promptId: String(saved._id),
     });
 
     res.json(saved);

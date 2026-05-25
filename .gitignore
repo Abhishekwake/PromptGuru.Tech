@@ -3,10 +3,16 @@ node_modules/
 .next/
 dist/
 
+# Graphify generated graphs (run: py -m graphify update <folder>)
+graphify-out/
+
 # Ignore environment files (frontend & backend)
 prompguru-firebase-adminsdk-fbsvc-749f5b5eb0.json
-.env
-.env.local
+*firebase-adminsdk*.json
+**/.env
+**/.env.local
+**/.env.production
+**/.env.development
 
 # Mac & Windows system files
 .DS_Store

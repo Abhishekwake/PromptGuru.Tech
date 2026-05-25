@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Spinner from '@/components/Spinner';
+import { notifyAuthChanged } from '@/components/Navbar';
 import { auth, provider } from '@/lib/firebase';
 import {
   createUserWithEmailAndPassword,
@@ -102,6 +103,7 @@ export default function Register() {
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem('token', data.token);
+        notifyAuthChanged();
         showNotification('Google sign-in successful!', 'success');
         router.push('/dashboard');
       } else {

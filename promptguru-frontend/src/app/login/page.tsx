@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { notifyAuthChanged } from '@/components/Navbar';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Spinner from '@/components/Spinner';
@@ -10,13 +11,43 @@ import Spinner from '@/components/Spinner';
 import { auth, provider } from '@/lib/firebase';
 import { signInWithEmailAndPassword, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
 
+function getPostLoginDestination(): string {
+  if (typeof window === 'undefined') return '/dashboard';
+  try {
+    const redirect = new URLSearchParams(window.location.search).get('redirect');
+    if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
+      return redirect;
+    }
+  } catch {
+    /* ignore malformed URL params */
+  }
+  return '/dashboard';
+}
+
 export default function Login() {
   const router = useRouter();
+  const signedOutToastDone = useRef(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
+
+  useEffect(() => {
+    if (signedOutToastDone.current || typeof window === 'undefined') return;
+    const q = new URLSearchParams(window.location.search);
+    if (q.get('signedOut') !== '1') return;
+    signedOutToastDone.current = true;
+    setNotification({
+      type: 'success',
+      message: "You're signed out. Sign in again to continue to your dashboard.",
+    });
+    const redirect = q.get('redirect');
+    const safe =
+      redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/dashboard';
+    router.replace(`/login?redirect=${encodeURIComponent(safe)}`);
+    window.setTimeout(() => setNotification(null), 5200);
+  }, [router]);
 
   const showNotification = (message: string, type: 'error' | 'success' = 'error') => {
     setNotification({ message, type });
@@ -48,8 +79,9 @@ export default function Login() {
 
       if (res.ok) {
         localStorage.setItem('token', data.token);
+        notifyAuthChanged();
         showNotification('Login successful!', 'success');
-        router.push('/dashboard');
+        router.push(getPostLoginDestination());
       } else {
         showNotification(data.message || 'Login failed', 'error');
       }
@@ -94,8 +126,9 @@ export default function Login() {
 
       if (res.ok) {
         localStorage.setItem('token', data.token);
+        notifyAuthChanged();
         showNotification('Google login successful!', 'success');
-        router.push('/dashboard');
+        router.push(getPostLoginDestination());
       } else {
         showNotification(data.message || 'Google login failed', 'error');
       }
